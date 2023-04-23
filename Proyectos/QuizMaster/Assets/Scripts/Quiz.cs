@@ -6,33 +6,73 @@ using UnityEngine.UI;
 
 public class Quiz : MonoBehaviour
 {
+    [Header("Questions")]
     [SerializeField] TextMeshProUGUI questionText;
-    [SerializeField] QuestionSO question;
+    [SerializeField] List<QuestionSO> questions = new List<QuestionSO>();
+    QuestionSO currentQuestion;
+
+    [Header("Answers")]
     [SerializeField] GameObject[] answersButtons;
+    int correctAnswerIndex;
+    bool hasAnsweredEarly;
+
+    [Header("Buttons")]
     [SerializeField] Sprite defaultAnswerSprite;
     [SerializeField] Sprite correctAnswerSprite;
-    int correctAnswerIndex;
+
+    [Header("Timer")]
+    [SerializeField] Image timerImage;
+    Timer timer;
 
     void Start()
     {
-        GetNextQuestion();
+        timer = FindObjectOfType<Timer>();
+    }
+
+    private void Update()
+    {
+        timerImage.fillAmount = timer.fillFraction;
+        if (timer.loadNextQuestion)
+        {
+            hasAnsweredEarly = false;
+            GetNextQuestion();
+            timer.loadNextQuestion = false;
+        }
+        else if(!hasAnsweredEarly && !timer.isAnsweringQuestion)
+        {
+            DisplayAnswer(-1);
+            SetButtonState(false);
+        }
     }
 
     void GetNextQuestion()
     {
-        SetButtonState(true);
-        SetDefaultButtonSprites();
-        DisplayQuestion();
+        if (questions.Count > 0)
+        {
+            SetButtonState(true);
+            SetDefaultButtonSprites();
+            GetRandomQuestion();
+            DisplayQuestion();
+        }
+    }
+
+    private void GetRandomQuestion()
+    {
+        int index = Random.Range(0, questions.Count);
+        currentQuestion = questions[index];
+
+        if(questions.Contains(currentQuestion))
+            questions.Remove(currentQuestion);
     }
 
     private void DisplayQuestion()
     {
-        questionText.text = question.getQuestion();
+        questionText.text = currentQuestion.getQuestion();
 
         for (int i = 0; i < answersButtons.Length; i++)
         {
             TextMeshProUGUI buttonText = answersButtons[i].GetComponentInChildren<TextMeshProUGUI>();
-            buttonText.text = question.getAnswer(i);
+            buttonText.text = currentQuestion.getAnswer(i);
         }
     }
 
@@ -46,13 +86,20 @@ public class Quiz : MonoBehaviour
 
     public void OnAnswerSelected(int index)
     {
-        correctAnswerIndex = question.getCorrectAnswerIndex();
-        if (question.getCorrectAnswerIndex() == index)
+        hasAnsweredEarly = true;
+        DisplayAnswer(index);
+        SetButtonState(false);
+        timer.CancelTimer();
+    }
+
+    private void DisplayAnswer(int index)
+    {
+        correctAnswerIndex = currentQuestion.getCorrectAnswerIndex();
+        if (currentQuestion.getCorrectAnswerIndex() == index)
             questionText.text = "Correct!";
         else
             questionText.text = "Incorrect! The answer was\n" + answersButtons[correctAnswerIndex].GetComponentInChildren<TextMeshProUGUI>().text;
         SetSpriteOfButton(correctAnswerIndex, correctAnswerSprite);
-        SetButtonState(false);
     }
 
     private void SetSpriteOfButton(int index, Sprite sprite)
