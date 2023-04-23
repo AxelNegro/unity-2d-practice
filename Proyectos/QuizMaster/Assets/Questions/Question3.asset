@@ -16,3 +16,9 @@ MonoBehaviour:
 
 
 '
+  answers:
+  - Bankai
+  - Shikai
+  - Resurrection
+  - Hollowfication
+  correctAnswerIndex: 0

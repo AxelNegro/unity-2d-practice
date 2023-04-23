@@ -16,3 +16,9 @@ MonoBehaviour:
 
 
 '
+  answers:
+  - Back in time by wanting it
+  - Back in time by getting into a closet
+  - Back in time by death
+  - Back in time by incantation
+  correctAnswerIndex: 2

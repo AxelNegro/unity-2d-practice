@@ -16,3 +16,9 @@ MonoBehaviour:
 
 
 '
+  answers:
+  - Lady
+  - Dante
+  - Nero
+  - Trish
+  correctAnswerIndex: 0

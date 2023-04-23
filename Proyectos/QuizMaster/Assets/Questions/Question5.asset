@@ -17,3 +17,9 @@ MonoBehaviour:
 
 
 '
+  answers:
+  - Mud
+  - Quagmire
+  - Death god
+  - Magic god
+  correctAnswerIndex: 1

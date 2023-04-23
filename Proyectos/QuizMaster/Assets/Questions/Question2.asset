@@ -17,3 +17,9 @@ MonoBehaviour:
 
 
 '
+  answers:
+  - Ebony & Ivory
+  - Yamato
+  - Beowulf
+  - Rebellion
+  correctAnswerIndex: 3
