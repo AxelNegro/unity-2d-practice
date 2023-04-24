@@ -14,7 +14,7 @@ public class Quiz : MonoBehaviour
     [Header("Answers")]
     [SerializeField] GameObject[] answersButtons;
     int correctAnswerIndex;
-    bool hasAnsweredEarly;
+    bool hasAnsweredEarly = true;
 
     [Header("Buttons")]
     [SerializeField] Sprite defaultAnswerSprite;
@@ -33,7 +33,7 @@ public class Quiz : MonoBehaviour
 
     public bool isComplete;
 
-    void Start()
+    void Awake()
     {
         timer = FindObjectOfType<Timer>();
         scoreKeeper = FindObjectOfType<ScoreKeeper>();
@@ -46,6 +46,11 @@ public class Quiz : MonoBehaviour
         timerImage.fillAmount = timer.fillFraction;
         if (timer.loadNextQuestion)
         {
+            if (progressBar.value == progressBar.maxValue) { 
+                isComplete = true;
+                return;
+            }
+
             hasAnsweredEarly = false;
             GetNextQuestion();
             timer.loadNextQuestion = false;
@@ -105,21 +110,22 @@ public class Quiz : MonoBehaviour
         SetButtonState(false);
         timer.CancelTimer();
         scoreText.text = "Score: " + scoreKeeper.CalculateScore() + "%";
-
-        isComplete = (progressBar.value == progressBar.maxValue);
     }
 
     private void DisplayAnswer(int index)
     {
-        correctAnswerIndex = currentQuestion.getCorrectAnswerIndex();
-        if (currentQuestion.getCorrectAnswerIndex() == index)
+        if (currentQuestion != null)
         {
-            questionText.text = "Correct!";
-            scoreKeeper.IncrementCorrectAnswers();
+            correctAnswerIndex = currentQuestion.getCorrectAnswerIndex();
+            if (currentQuestion.getCorrectAnswerIndex() == index)
+            {
+                questionText.text = "Correct!";
+                scoreKeeper.IncrementCorrectAnswers();
+            }
+            else
+                questionText.text = "Incorrect! The answer was\n" + answersButtons[correctAnswerIndex].GetComponentInChildren<TextMeshProUGUI>().text;
+            SetSpriteOfButton(correctAnswerIndex, correctAnswerSprite);
         }
-        else
-            questionText.text = "Incorrect! The answer was\n" + answersButtons[correctAnswerIndex].GetComponentInChildren<TextMeshProUGUI>().text;
-        SetSpriteOfButton(correctAnswerIndex, correctAnswerSprite);
     }
 
     private void SetSpriteOfButton(int index, Sprite sprite)
