@@ -8,22 +8,30 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] float runSpeed = 10f;
     [SerializeField] float jumpSpeed = 20f;
     [SerializeField] float climbSpeed = 1f;
-
+    [SerializeField] Vector2 deathKick = new Vector2(10f, 10f);
+    [SerializeField] GameObject bullet;
+    [SerializeField] Transform gun;
     Vector2 moveInput;
     Rigidbody2D rigidBody;
     Animator animator;
-    CapsuleCollider2D collider;
+    CapsuleCollider2D bodyCollider;
+    BoxCollider2D feetCollider;
+    PlayerInput playerInput;
     float originalGravity;
+    bool isAlive = true;
     void Start()
     {
         rigidBody = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
-        collider = GetComponent<CapsuleCollider2D>();
+        bodyCollider = GetComponent<CapsuleCollider2D>();
+        feetCollider = GetComponent<BoxCollider2D>();
+        playerInput = GetComponent<PlayerInput>();
         originalGravity = rigidBody.gravityScale;
     }
 
     void Update()
     {
+        if (!isAlive) return;
         Run();
         FlipSprite();
         ClimbLadder();
@@ -31,17 +39,29 @@ public class PlayerMovement : MonoBehaviour
 
     void OnMove(InputValue value)
     {
+        if (!isAlive) return;
+
         moveInput = value.Get<Vector2>();
     }
 
     void OnJump(InputValue value)
     {
-        if (!(collider.IsTouchingLayers(LayerMask.GetMask("Ground"))||collider.IsTouchingLayers(LayerMask.GetMask("Ladder")))) return;
+        if (!isAlive) return;
+
+        if (!(feetCollider.IsTouchingLayers(LayerMask.GetMask("Ground"))||bodyCollider.IsTouchingLayers(LayerMask.GetMask("Ladder")))) return;
 
         if (value.isPressed)
         {
             rigidBody.velocity += new Vector2(0f, jumpSpeed);
         }
+    }
+
+    void OnFire(InputValue value)
+    {
+        if (!isAlive) return;
+
+        Instantiate(bullet, gun.position, new Quaternion(0,0,0,0));
+
     }
 
     void Run()
@@ -62,7 +82,7 @@ public class PlayerMovement : MonoBehaviour
 
     void ClimbLadder()
     {
-        if (!collider.IsTouchingLayers(LayerMask.GetMask("Ladder")))
+        if (!bodyCollider.IsTouchingLayers(LayerMask.GetMask("Ladder")))
         {
             animator.SetBool("isClimbing", false);
             rigidBody.gravityScale = originalGravity;
@@ -78,5 +98,22 @@ public class PlayerMovement : MonoBehaviour
         rigidBody.gravityScale = 0;
 
 
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        Die();
+    }
+
+    void Die()
+    {
+        if (!isAlive) return;
+
+        if (bodyCollider.IsTouchingLayers(LayerMask.GetMask("Enemies"))||bodyCollider.IsTouchingLayers(LayerMask.GetMask("Hazards")))
+        {
+            isAlive = false;
+            animator.SetTrigger("Dying");
+            rigidBody.velocity += deathKick;
+        }
     }
 }
